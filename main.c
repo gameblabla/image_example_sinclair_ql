@@ -100,8 +100,8 @@ const unsigned char ZX0_compressed_buffer[54] = {
 };
 
 //#define NV2S 1
-#define APLIB 1
-
+//#define APLIB 1
+#define SLZ 1
 extern void zx0_decompress(void *src, const void *dst);
 extern unsigned int apl_unpack(void *source, void *destination);
 extern unsigned int nrv2s_unpack(void *source, void *destination);
@@ -118,13 +118,17 @@ int main()
     //Find_main_device();
    
 #ifdef NV2S
-	open_image_to_buffer("IMGNV", (void*)TEMP_RAM_AREA, 32768);
+	open_image_to_buffer("IMGNV", (void*)TEMP_RAM_AREA, 13582);
 	nrv2s_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #elif defined(APLIB)
-	open_image_to_buffer("IMGAP", (void*)TEMP_RAM_AREA, 32768);
+	open_image_to_buffer("IMGAP", (void*)TEMP_RAM_AREA, 13537);
 	apl_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
+#elif defined(SLZ)
+	#warning "SLZ"
+	open_image_to_buffer("IMGSLZ", (void*)TEMP_RAM_AREA, 15183);
+	DecompressSlz((void*)TEMP_RAM_AREA, SCR8_START_ADDRESS);
 #else 
-	open_image_to_buffer("IMGZX0", (void*)TEMP_RAM_AREA, 32768);
+	open_image_to_buffer("IMGZX0", (void*)TEMP_RAM_AREA, 13710);
 	zx0_decompress((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #endif
     Init_text();
