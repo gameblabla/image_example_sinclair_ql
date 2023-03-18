@@ -1,0 +1,8 @@
+*.o
+boot
+roms/*.ROM
+roms/*.rom
+GAME/*
+GAME
+*.QCF
+*.zip
