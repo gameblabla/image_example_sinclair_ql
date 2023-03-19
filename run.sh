@@ -32,7 +32,7 @@ as68 slz.s slz.o
 as68 lz4w.s lz4w.o
 
 # Compile the C program with qcc and capture the output
-OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -o $TARGET main.c zx0.o lz4w.o nv.o aplib.o 2>&1)
+OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -o $TARGET main.c zx0.o lz4w.o nv.o aplib.o slz.o 2>&1)
 
 if ! test -f "$TARGET"; then
     echo $OUTPUT

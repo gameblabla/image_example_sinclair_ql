@@ -19,8 +19,13 @@ const char *device_names[] =
 
 #define SCR8_START_ADDRESS ((volatile void*)0x20000)
 
-// Move this up to 0x40000 for Expanded RAM
-#define TEMP_RAM_AREA ((volatile void*)0x3BC00)
+#ifdef _512KB
+// Use 0x40000 for Expanded RAM
+#define TEMP_RAM_AREA ((volatile void*)0x40000)
+#else
+// Assume default 128KB configuration
+#define TEMP_RAM_AREA ((volatile void*)0x3A000)
+#endif
 
 WINDOWDEF_t my_windef = { 
 		WHITE_M4, 0, 
@@ -108,6 +113,7 @@ extern void zx0_decompress(void *src, const void *dst);
 extern unsigned int apl_unpack(void *source, void *destination);
 extern unsigned int nrv2s_unpack(void *source, void *destination);
 extern unsigned int lz4w_unpack(void * source, void *destination);
+extern void DecompressSlz(void *src, const void *dst);
 
 int main()
 {
@@ -121,9 +127,11 @@ int main()
     //Find_main_device();
    
 #ifdef NV2S
+	#warning "NV2S"
 	open_image_to_buffer("IMGNV", (void*)TEMP_RAM_AREA, 13582);
 	nrv2s_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #elif defined(APLIB)
+	#warning "APLIB"
 	open_image_to_buffer("IMGAP", (void*)TEMP_RAM_AREA, 13537);
 	apl_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #elif defined(SLZ)
@@ -135,11 +143,13 @@ int main()
 	open_image_to_buffer("IMGLZ4W", (void*)TEMP_RAM_AREA, 19640);
 	lz4w_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #else 
+	#warning "ZX0"
 	open_image_to_buffer("IMGZX0", (void*)TEMP_RAM_AREA, 13710);
 	zx0_decompress((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #endif
-    Init_text();
-	Print_text("YES  ", 5);
+
+    //Init_text();
+	//Print_text("YES  ", 5);
 
 	
 	while(1)
