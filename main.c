@@ -107,7 +107,7 @@ const unsigned char ZX0_compressed_buffer[54] = {
 //#define NV2S 1
 //#define APLIB 1
 //#define SLZ 1
-#define LZ4W 1
+//#define LZ4W 1
 
 extern void zx0_decompress(void *src, const void *dst);
 extern unsigned int apl_unpack(void *source, void *destination);
@@ -122,6 +122,12 @@ int main()
     int i;
 
     short mode = 8;
+
+	// Turn on Supervisor mode
+	// This is much faster than the default
+	// Thanks SMFX for the advice
+	asm ("trap    #0");
+	asm ("or.w    #$700,s");
 
     mt_dmode(&mode, -1);
     //Find_main_device();
@@ -147,6 +153,8 @@ int main()
 	open_image_to_buffer("IMGZX0", (void*)TEMP_RAM_AREA, 13710);
 	zx0_decompress((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #endif
+
+
 
     //Init_text();
 	//Print_text("YES  ", 5);

@@ -9,9 +9,12 @@ various algos that can be turned on and off :
 - SLZ
 - lz4w
 
-They are all pretty slow unfortunately...
-lz4w is quite fast but not fast enough for FMV stuff.
-I may look into RLE eventually.
+Their speeds range from slow to very fast.
+lz4w's decompressor is quite fast but does not compress as well.
+ZX0 compresses well but isn't as fast.
+
+Supervisor mode is used to speed it up as otherwise it would end up
+being too slow.
 
 # Compressing the image/anything
 
