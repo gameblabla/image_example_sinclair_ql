@@ -1,40 +1,31 @@
 #!/bin/bash
 
-FILESTOADD="IMGZX0 IMGAP IMGSLZ IMGNV IMGLZ4W"
-
 # Check that the target file name is provided as a parameter
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <target>"
     exit 1
 fi
 
-# https://unix.stackexchange.com/questions/219268/how-to-add-new-lines-when-using-echo
-print()
-	case    ${IFS- } in
-	(\ *)   printf  %b\\n "$*";;
-	(*)     IFS=\ $IFS
-	printf  %b\\n "$*"
-	IFS=${IFS#?}
-esac
-
+# Files to add to floppy disk images/folder etc...
+FILES_TO_ADD=("IMGAP IMGLZ4W IMGNV IMGSLZ IMGZX0")
+#Default device to load files from
+DEFAULT_DEVICE="flp1"
 
 # Get the target file name from the command line parameter
 TARGET=$1
 
-rm -f boot $TARGET 
-rm *.o
-rm -r GAME
+rm -f boot $TARGET
+rm -f *.o GAME.qlpak
 
-mkdir -p GAME
+# Find all .s files in the current directory and compile them to .o files
+for f in *.s; do
+  as68 "$f" "${f%.s}.o"
+done
 
-as68 zx0.s zx0.o
-as68 nv.s nv.o
-as68 aplib.s aplib.o
-as68 slz.s slz.o
-as68 lz4w.s lz4w.o
+echo "Device to load from : "$DEFAULT_DEVICE
 
-# Compile the C program with qcc and capture the output
-OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -o $TARGET main.c zx0.o lz4w.o nv.o aplib.o slz.o 2>&1)
+# Compile main.c and inline all .o files
+OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -nostartfiles -ffixed-a6 -DDEVICE_LOADFROM=\"$DEFAULT_DEVICE\" -o $TARGET -Wl,-ms -Wl,-screspr.o main.c $(find . -maxdepth 1 -name "*.o") 2>&1)
 
 if ! test -f "$TARGET"; then
     echo $OUTPUT
@@ -44,15 +35,18 @@ fi
 
 echo $OUTPUT
 
+echo "Patching executable to work without EXEC"
+printf "+%d" 0x`tail -c 4 $TARGET | xxd -l 32 -p|sed 's/^0*//'` | xargs -I X truncate -s X $TARGET
+
 # Extract the data space size from the qcc output
 DATASPACE=$(echo "$OUTPUT" | grep -oP '(?<=dataspace )[0-9a-fA-F]+')
 
+# Get the size of the file "MAIN"
 filesize=$(stat -c %s ${TARGET})
-DEFAULT_DEVICE="flp1"
 
 echo "30 mem=RESPR($filesize)" >> boot
 echo "40 LBYTES \"${DEFAULT_DEVICE}_${TARGET}\",mem" >> boot
-echo "60 EXEC_W \"${DEFAULT_DEVICE}_${TARGET}\"" >> boot
+echo "50 CALL mem" >> boot
 
 
 # Create a "GAME.QCF" file with the appropriate QPC2 configuration
@@ -87,19 +81,23 @@ echo "WindowHeight=376" >> GAME.QCF
 echo "PakDir1=" >> GAME.QCF
 
 # Create a ZIP archive containing the game files and QCF file
-qlzip -r GAME.qlpak GAME.QCF boot $TARGET $FILESTOADD
+qlzip -r GAME.qlpak GAME.QCF boot $TARGET $FILES_TO_ADD
+#qlzip -r GAME.zip boot MAIN
+
+rm -r GAME
+mkdir GAME
+
+cp $TARGET GAME/$TARGET
+cp boot GAME/
+cp $FILES_TO_ADD GAME/
 
 rm game.img
 qltools game.img -fdd GAME
-qltools game.img -w boot $FILESTOADD
+qltools game.img -w boot $FILES_TO_ADD
 qltools game.img -W $TARGET
 qltools game.img -x $TARGET $DATASPACE
 qltools game.img -s
 
-cp $TARGET GAME/$TARGET
-cp boot GAME/boot
-cp *ZX0 GAME
-cp *NV GAME
-cp *AP GAME
-cp *SLZ GAME
-cp *LZ4W GAME
+# Remove the temporary game directory
+rm -rf GAME.QCF
+rm -f *.o $TARGET boot BOOT

@@ -9,13 +9,17 @@
 #define int32_t short
 #define uint8_t unsigned char
 
-char text[120] = "";
-char main_device_name[6] = "flp1_";
+#ifndef DEVICE_LOADFROM
+#error "Define DEVICE_LOADFROM to something like flp1 or mdv1"
+#endif
+
+char main_device_name[6] = DEVICE_LOADFROM"_";
 unsigned char i;
-const char *device_names[] =
-{
-    "mdv1_", "mdv2_", "flp1_", "flp2_", "win1_", "win2_", ""
-};
+
+#define SCREEN_MODE_ADDR ((volatile unsigned char*)0x18063)
+
+#define SET_HIGH_RESOLUTION() *SCREEN_MODE_ADDR = (0 << 3);
+#define SET_LOW_RESOLUTION() *SCREEN_MODE_ADDR = (1 << 3);
 
 #define SCR8_START_ADDRESS ((volatile void*)0x20000)
 
@@ -31,7 +35,7 @@ const char *device_names[] =
 
 // Stock ROM can go further at 0x2A000
 // but Minerva, this is as far as we can go...
-#define TEMP_RAM_AREA ((volatile void*)0x2B4D0)
+#define TEMP_RAM_AREA ((volatile void*)0x2C000)
 
 #endif
 
@@ -64,27 +68,6 @@ void Print_text(const char* str, unsigned char text_size)
 	sprintf( p_qlstr->qs_str, str);
 	p_qlstr->qs_strlen = text_size;
 	ut_mtext( in, p_qlstr );
-}
-
-
-// Needs TEST file
-void Find_main_device()
-{
-    chanid_t fil;
-    char temp[32];
-    
-    for(i=0;i<9;i++)
-    {
-		sprintf(temp, "%sTEST", device_names[i]);
-		fil = io_open(temp, 0x01);
-		if (!(fil < 0))
-		{
-			sprintf(main_device_name, "%sTEST", device_names[i]);
-			break;
-		}
-	}
-	
-	if (fil) io_close(fil);
 }
 
 unsigned char open_image_to_buffer(const char* fname, void* buf, unsigned short fsize)
@@ -136,7 +119,6 @@ int main()
 	asm ("or.w    #$700,sr");
 
     mt_dmode(&mode, -1);
-    //Find_main_device();
    
 #ifdef NV2S
 	#warning "NV2S"
