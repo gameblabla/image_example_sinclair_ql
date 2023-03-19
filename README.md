@@ -6,9 +6,12 @@ various algos that can be turned on and off :
 - Aplib
 - ZX0
 - nrv2s
+- SLZ
+- lz4w
 
 They are all pretty slow unfortunately...
-Something like ZX1/Mega variant would greatly help.
+lz4w is quite fast but not fast enough for FMV stuff.
+I may look into RLE eventually.
 
 # Compressing the image/anything
 
@@ -26,6 +29,16 @@ nrv2s doesn't have an open source encoder but the proprietary one that
 uses UPX is on that repo.
 ```
 nrv2x -e MYSCR.SCR8 IMGNV
+```
+
+lz4w needs java and lz4w.jar
+```
+java -jar lz4w.jar p <input_file> <output_file>
+```
+
+slz needs tools from here : https://github.com/sikthehedgehog/mdtools/tree/master/slz/tool
+```
+slz <input_file> <output_file>
 ```
 
 # Compiling
