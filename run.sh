@@ -1,5 +1,7 @@
 #!/bin/bash
 
+FILESTOADD="IMGZX0 IMGAP IMGSLZ IMGNV IMGLZ4W"
+
 # Check that the target file name is provided as a parameter
 if [ $# -ne 1 ]; then
     echo "Usage: $0 <target>"
@@ -85,7 +87,14 @@ echo "WindowHeight=376" >> GAME.QCF
 echo "PakDir1=" >> GAME.QCF
 
 # Create a ZIP archive containing the game files and QCF file
-qlzip -r GAME.qlpak GAME.QCF boot $TARGET IMGZX0 IMGAP IMGSLZ IMGNV IMGLZ4W
+qlzip -r GAME.qlpak GAME.QCF boot $TARGET $FILESTOADD
+
+rm game.img
+qltools game.img -fdd GAME
+qltools game.img -w boot $FILESTOADD
+qltools game.img -W $TARGET
+qltools game.img -x $TARGET $DATASPACE
+qltools game.img -s
 
 cp $TARGET GAME/$TARGET
 cp boot GAME/boot
