@@ -101,10 +101,13 @@ const unsigned char ZX0_compressed_buffer[54] = {
 
 //#define NV2S 1
 //#define APLIB 1
-#define SLZ 1
+//#define SLZ 1
+#define LZ4W 1
+
 extern void zx0_decompress(void *src, const void *dst);
 extern unsigned int apl_unpack(void *source, void *destination);
 extern unsigned int nrv2s_unpack(void *source, void *destination);
+extern unsigned int lz4w_unpack(void * source, void *destination);
 
 int main()
 {
@@ -126,7 +129,11 @@ int main()
 #elif defined(SLZ)
 	#warning "SLZ"
 	open_image_to_buffer("IMGSLZ", (void*)TEMP_RAM_AREA, 15183);
-	DecompressSlz((void*)TEMP_RAM_AREA, SCR8_START_ADDRESS);
+	DecompressSlz((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
+#elif defined(LZ4W)
+	#warning "LZ4W"
+	open_image_to_buffer("IMGLZ4W", (void*)TEMP_RAM_AREA, 19640);
+	lz4w_unpack((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);
 #else 
 	open_image_to_buffer("IMGZX0", (void*)TEMP_RAM_AREA, 13710);
 	zx0_decompress((void*)TEMP_RAM_AREA, (void*)SCR8_START_ADDRESS);

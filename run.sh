@@ -20,7 +20,7 @@ esac
 TARGET=$1
 
 rm -f boot $TARGET 
-rm zx0.o nv.o
+rm *.o
 rm -r GAME
 
 mkdir -p GAME
@@ -29,9 +29,10 @@ as68 zx0.s zx0.o
 as68 nv.s nv.o
 as68 aplib.s aplib.o
 as68 slz.s slz.o
+as68 lz4w.s lz4w.o
 
 # Compile the C program with qcc and capture the output
-OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -o $TARGET main.c zx0.o nv.o aplib.o slz.o 2>&1)
+OUTPUT=$(qdos-gcc -Os -fomit-frame-pointer -o $TARGET main.c zx0.o lz4w.o nv.o aplib.o 2>&1)
 
 if ! test -f "$TARGET"; then
     echo $OUTPUT
@@ -100,3 +101,4 @@ cp *ZX0 GAME
 cp *NV GAME
 cp *AP GAME
 cp *SLZ GAME
+cp *LZ4W GAME
