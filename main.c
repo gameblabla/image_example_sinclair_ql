@@ -10,7 +10,7 @@
 #define uint8_t unsigned char
 
 char text[120] = "";
-char main_device_name[6] = "mdv1_";
+char main_device_name[6] = "flp1_";
 unsigned char i;
 const char *device_names[] =
 {
@@ -24,7 +24,15 @@ const char *device_names[] =
 #define TEMP_RAM_AREA ((volatile void*)0x40000)
 #else
 // Assume default 128KB configuration
-#define TEMP_RAM_AREA ((volatile void*)0x3A000)
+
+// This is the higher memory area that's free for us
+// If we attempt to go further, we overwrite our own memory
+//#define TEMP_RAM_AREA ((volatile void*)0x3A000)
+
+// Stock ROM can go further at 0x2A000
+// but Minerva, this is as far as we can go...
+#define TEMP_RAM_AREA ((volatile void*)0x2B4D0)
+
 #endif
 
 WINDOWDEF_t my_windef = { 
@@ -120,14 +128,12 @@ int main()
     FILE* fp;
     long file_size;
     int i;
-
     short mode = 8;
-
 	// Turn on Supervisor mode
 	// This is much faster than the default
 	// Thanks SMFX for the advice
 	asm ("trap    #0");
-	asm ("or.w    #$700,s");
+	asm ("or.w    #$700,sr");
 
     mt_dmode(&mode, -1);
     //Find_main_device();

@@ -45,33 +45,25 @@ echo $OUTPUT
 # Extract the data space size from the qcc output
 DATASPACE=$(echo "$OUTPUT" | grep -oP '(?<=dataspace )[0-9a-fA-F]+')
 
+filesize=$(stat -c %s ${TARGET})
+DEFAULT_DEVICE="flp1"
 
-echo '9  f$ = "mdv1_MAIN"' >> boot
-echo "20 l=FLEN(\f$)" >> boot
-#echo "21 DELETE ram1_MAIN" >> boot
-echo "30 mem=RESPR(l)" >> boot
-echo "40 LBYTES f$,mem" >> boot
-#echo "50 SEXEC ram1_$TARGET,mem,l,$DATASPACE" >> boot
-#echo "60 EXEC ram1_MAIN" >> boot
-echo "60 EXEC f$" >> boot
-echo "70 " >> boot
-echo "80 GOTO 70" >> boot
-echo "31000" >> boot
+echo "30 mem=RESPR($filesize)" >> boot
+echo "40 LBYTES \"${DEFAULT_DEVICE}_${TARGET}\",mem" >> boot
+echo "60 EXEC_W \"${DEFAULT_DEVICE}_${TARGET}\"" >> boot
 
 
 # Create a "GAME.QCF" file with the appropriate QPC2 configuration
 echo "Ram=128K" > GAME.QCF
 echo "MainRom=QL ROMs\QL_ROM_JS" >> GAME.QCF
-echo "BackRomActive=Yes" >> GAME.QCF
-echo "BackRom=QL ROMs\TK2_rom" >> GAME.QCF
 echo "BackRomActive=No" >> GAME.QCF
 echo "ExpRomActive=No" >> GAME.QCF
-echo "UseFloppyName=No" >> GAME.QCF
+echo "UseFloppyName=Yes" >> GAME.QCF
+echo "FloppyName=flp" >> GAME.QCF
 echo "UseHardDiskName=No" >> GAME.QCF
 echo "HardDiskName=win" >> GAME.QCF
 echo "HasRamDisk=Yes" >> GAME.QCF
 echo "RamDiskName=RAM" >> GAME.QCF
-echo "HasRamDisk=Yes" >> GAME.QCF
 echo "HasParPort=No" >> GAME.QCF
 echo "Subdirs=Off" >> GAME.QCF
 echo "Speed=QL" >> GAME.QCF
@@ -93,10 +85,10 @@ echo "WindowHeight=376" >> GAME.QCF
 echo "PakDir1=" >> GAME.QCF
 
 # Create a ZIP archive containing the game files and QCF file
-qlzip -r GAME.zip boot MAIN IMGZX0
+qlzip -r GAME.qlpak GAME.QCF boot $TARGET IMGZX0 IMGAP IMGSLZ IMGNV IMGLZ4W
 
-cp MAIN GAME/MAIN
-cp boot GAME/BOOT
+cp $TARGET GAME/$TARGET
+cp boot GAME/boot
 cp *ZX0 GAME
 cp *NV GAME
 cp *AP GAME
